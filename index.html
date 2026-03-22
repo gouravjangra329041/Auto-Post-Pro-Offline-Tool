@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AutoPost Pro — Autopilot</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0f;--s1:#111118;--s2:#1a1a24;--border:#2a2a3a;--accent:#7c3aed;--cyan:#06b6d4;--green:#10b981;--red:#ef4444;--yellow:#f59e0b;--text:#e2e8f0;--muted:#64748b;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 20% 20%,rgba(124,58,237,.07),transparent 60%),radial-gradient(ellipse 60% 40% at 80% 80%,rgba(6,182,212,.05),transparent 60%);pointer-events:none;z-index:0;}
+.wrap{max-width:1000px;margin:0 auto;padding:0 20px;position:relative;z-index:1;}
+header{padding:24px 0 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+.logo{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;background:linear-gradient(135deg,#7c3aed,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.pilot-badge{font-family:'DM Mono',monospace;font-size:10px;padding:4px 12px;border-radius:20px;letter-spacing:1px;text-transform:uppercase;border:1px solid rgba(124,58,237,.4);background:rgba(124,58,237,.1);color:#a78bfa;}
+.hero{text-align:center;padding:8px 0 32px;}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(26px,5vw,46px);font-weight:800;line-height:1.1;letter-spacing:-1.5px;margin-bottom:10px;color:#f1f5f9;}
+.hero h1 span{background:linear-gradient(135deg,#7c3aed 20%,#06b6d4 80%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.hero p{color:var(--muted);font-size:14px;max-width:480px;margin:0 auto;line-height:1.7;}
+
+/* Cards */
+.card{background:var(--s1);border:1px solid var(--border);border-radius:18px;padding:24px;margin-bottom:16px;position:relative;overflow:hidden;}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(124,58,237,.4),transparent);}
+.stitle{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.stitle::after{content:'';flex:1;height:1px;background:var(--border);}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+.field{display:flex;flex-direction:column;gap:6px;}
+.field label{font-size:12px;font-weight:500;color:#94a3b8;}
+.field input,.field select{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:10px 13px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border-color .2s,box-shadow .2s;width:100%;}
+.field input:focus,.field select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,58,237,.1);}
+.field select option{background:#1a1a24;}
+
+/* Platform chips */
+.plat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:9px;}
+.plat-chip{background:var(--s2);border:1px solid var(--border);border-radius:11px;padding:12px 14px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:9px;font-size:13px;font-weight:500;user-select:none;}
+.plat-chip:hover{border-color:var(--accent);}
+.plat-chip.on{border-color:var(--accent);background:rgba(124,58,237,.1);color:#a78bfa;}
+.plat-chip .dot{width:7px;height:7px;border-radius:50%;background:var(--border);transition:all .2s;flex-shrink:0;}
+.plat-chip.on .dot{background:var(--accent);box-shadow:0 0 6px var(--accent);}
+.plat-creds{margin-top:18px;display:none;}
+.plat-creds.show{display:block;}
+.cred-block{margin-bottom:20px;background:rgba(0,0,0,.2);border:1px solid var(--border);border-radius:14px;padding:16px;}
+.cred-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#a78bfa;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.free-tag{font-size:10px;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.25);color:var(--green);padding:2px 7px;border-radius:20px;font-family:'DM Mono',monospace;}
+.cg{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.cg.full1 .cf:first-child{grid-column:1/-1;}
+.cf label{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;display:block;margin-bottom:5px;}
+.cf input{background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;outline:none;width:100%;transition:border-color .2s;}
+.cf input:focus{border-color:var(--accent);}
+
+/* OAuth box */
+.oauth-box{margin-top:12px;padding:12px 16px;border-radius:11px;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.25);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.oauth-box.ok{background:rgba(16,185,129,.06);border-color:rgba(16,185,129,.25);}
+.oauth-txt{font-size:12px;color:var(--yellow);font-family:'DM Mono',monospace;}
+.oauth-box.ok .oauth-txt{color:var(--green);}
+.oauth-btn{background:linear-gradient(135deg,#f59e0b,#d97706);border:none;border-radius:8px;padding:8px 16px;color:#000;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:opacity .2s;white-space:nowrap;}
+.oauth-btn:hover{opacity:.85;}
+.oauth-btn.ok{background:linear-gradient(135deg,#10b981,#059669);color:#fff;}
+
+/* Groq key */
+.key-card{border-radius:16px;padding:22px 24px;margin-bottom:16px;border:1px solid rgba(16,185,129,.25);background:rgba(16,185,129,.04);}
+.key-row{display:flex;gap:10px;align-items:center;margin-bottom:12px;}
+.key-row input{flex:1;background:var(--s2);border:1.5px solid rgba(16,185,129,.3);border-radius:10px;padding:11px 14px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;outline:none;transition:border-color .2s;}
+.key-row input:focus{border-color:#10b981;}
+.key-save{background:linear-gradient(135deg,#059669,#047857);border:none;border-radius:10px;padding:11px 18px;color:#fff;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;}
+.key-msg{display:none;font-family:'DM Mono',monospace;font-size:11px;color:#10b981;padding:6px 10px;background:rgba(16,185,129,.1);border-radius:8px;border:1px solid rgba(16,185,129,.2);}
+.key-msg.show{display:block;}
+.key-steps{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;}
+.ks{display:flex;gap:8px;align-items:flex-start;padding:9px 11px;background:rgba(0,0,0,.2);border-radius:9px;border:1px solid rgba(255,255,255,.04);}
+.ks .n{min-width:20px;height:20px;border-radius:50%;background:rgba(16,185,129,.2);border:1px solid rgba(16,185,129,.4);display:flex;align-items:center;justify-content:center;font-size:10px;color:#10b981;font-weight:700;flex-family:monospace;flex-shrink:0;margin-top:1px;}
+.ks p{font-size:11px;color:#64748b;line-height:1.5;}
+.ks p a{color:var(--cyan);}
+.ks p strong{color:#94a3b8;}
+
+/* Stats row */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
+.stat-box{background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:16px 20px;text-align:center;}
+.stat-num{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;line-height:1;}
+.stat-lbl{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:4px;}
+.stat-num.green{color:var(--green);}
+.stat-num.red{color:var(--red);}
+.stat-num.cyan{color:var(--cyan);}
+
+/* Live log terminal */
+.terminal{background:#050508;border:1px solid #1e1e2e;border-radius:14px;overflow:hidden;}
+.t-head{padding:10px 15px;background:#0d0d14;border-bottom:1px solid #1e1e2e;display:flex;align-items:center;gap:7px;}
+.t-dot{width:9px;height:9px;border-radius:50%;}
+.t-head span{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-left:4px;}
+.t-body{padding:12px;font-family:'DM Mono',monospace;font-size:11.5px;line-height:1.9;height:260px;overflow-y:auto;}
+.ll{display:flex;gap:10px;}
+.lt{color:#334155;flex-shrink:0;}
+.lok{color:var(--green);} .linf{color:var(--cyan);} .lwrn{color:var(--yellow);} .lerr{color:var(--red);} .lai{color:#a78bfa;}
+
+/* Posts table */
+.posts-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:12px;}
+.posts-table th{font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);padding:8px 12px;border-bottom:1px solid var(--border);text-align:left;}
+.posts-table td{padding:10px 12px;border-bottom:1px solid rgba(42,42,58,.5);color:#94a3b8;vertical-align:middle;}
+.posts-table td a{color:var(--cyan);text-decoration:none;}
+.posts-table td a:hover{text-decoration:underline;}
+.plat-tag{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;font-family:'DM Mono',monospace;border:1px solid rgba(124,58,237,.3);background:rgba(124,58,237,.1);color:#a78bfa;}
+
+/* Topic preview */
+.topics-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;}
+.topic-card{background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:10px;padding:12px;}
+.topic-card h4{font-size:12px;font-weight:600;color:#e2e8f0;margin-bottom:4px;}
+.topic-card p{font-size:11px;color:var(--muted);}
+.topic-badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:20px;background:rgba(6,182,212,.1);border:1px solid rgba(6,182,212,.2);color:var(--cyan);font-family:'DM Mono',monospace;margin-top:4px;}
+
+/* Buttons */
+.btn-start{width:100%;padding:18px;background:linear-gradient(135deg,#7c3aed,#4f46e5);border:none;border-radius:14px;color:#fff;font-family:'Syne',sans-serif;font-size:17px;font-weight:700;cursor:pointer;transition:transform .15s,box-shadow .15s;display:flex;align-items:center;justify-content:center;gap:11px;box-shadow:0 8px 28px rgba(124,58,237,.35);}
+.btn-start:hover{transform:translateY(-2px);box-shadow:0 12px 36px rgba(124,58,237,.5);}
+.btn-start.active{background:linear-gradient(135deg,#dc2626,#b91c1c);box-shadow:0 8px 28px rgba(220,38,38,.35);}
+.btn-preview{background:rgba(6,182,212,.1);border:1px solid rgba(6,182,212,.25);color:var(--cyan);font-family:'DM Mono',monospace;font-size:12px;padding:8px 16px;border-radius:10px;cursor:pointer;transition:all .2s;margin-bottom:16px;}
+.btn-preview:hover{background:rgba(6,182,212,.18);}
+.status-pill{display:inline-flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:11px;padding:4px 12px;border-radius:20px;}
+.status-pill.running{background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);color:var(--green);}
+.status-pill.stopped{background:rgba(100,116,139,.1);border:1px solid rgba(100,116,139,.2);color:var(--muted);}
+.pulse{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1.4s infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(.8);}}
+.spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeIn{to{opacity:1}}
+.divider{height:1px;background:var(--border);margin:16px 0;}
+@media(max-width:640px){.g2,.g3,.cg,.stats-row,.key-steps,.topics-grid{grid-template-columns:1fr;}.plat-grid{grid-template-columns:1fr 1fr;}.card,.key-card{padding:16px;}.key-row{flex-direction:column;}.key-save{width:100%;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="logo">AutoPost Pro</div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div class="status-pill stopped" id="status-pill"><span>●</span> Stopped</div>
+    <div class="pilot-badge">✦ Autopilot</div>
+  </div>
+</header>
+
+<div class="hero">
+  <h1>Full Autopilot.<br><span>10 Posts/Day.</span></h1>
+  <p>AI automatically picks topics, writes SEO articles, embeds your backlink, and posts to every platform — every single day. Zero manual work.</p>
+</div>
+
+<!-- GROQ KEY -->
+<div class="key-card">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+    <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#10b981;">Groq API Key</div>
+    <span style="font-size:10px;background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);color:#10b981;padding:2px 8px;border-radius:20px;font-family:'DM Mono',monospace;">FREE FOREVER</span>
+  </div>
+  <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Free AI — works in Pakistan, no credit card needed.</p>
+  <div class="key-row">
+    <input type="password" id="groq-key" placeholder="gsk_..." autocomplete="off"/>
+    <button class="key-save" onclick="saveKey()">Save ✓</button>
+  </div>
+  <div class="key-msg" id="key-msg">✓ API key saved — ready!</div>
+  <div class="key-steps">
+    <div class="ks"><div class="n">1</div><p>Go to <a href="https://console.groq.com" target="_blank">console.groq.com</a></p></div>
+    <div class="ks"><div class="n">2</div><p>Sign up free with Gmail</p></div>
+    <div class="ks"><div class="n">3</div><p><strong>API Keys → Create API Key</strong></p></div>
+    <div class="ks"><div class="n">4</div><p>Copy key (starts <strong>gsk_</strong>) → paste above</p></div>
+  </div>
+</div>
+
+<!-- CONFIG -->
+<div class="card">
+  <div class="stitle">01 — Your Website</div>
+  <div class="g2">
+    <div class="field"><label>Your Website URL (Backlink Target)</label><input type="url" id="backlink-url" placeholder="https://sahyaagro.com/"/></div>
+    <div class="field"><label>Website Niche / Industry</label><input type="text" id="website-niche" placeholder="e.g. Organic Food, Farm Products"/></div>
+  </div>
+  <div style="margin-top:14px;padding:12px 14px;background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.2);border-radius:10px;font-size:12px;color:#a78bfa;">
+    ✦ AI will automatically generate 10 unique SEO topics, anchor texts, keywords, and writing instructions — tailored to your website every day.
+  </div>
+</div>
+
+<div class="card">
+  <div class="stitle">02 — Article Settings</div>
+  <div class="g3">
+    <div class="field"><label>Article Length</label>
+      <select id="art-length">
+        <option value="short">Short (~500 words)</option>
+        <option value="medium" selected>Medium (~800 words)</option>
+        <option value="long">Long (~1200 words)</option>
+        <option value="pillar">Pillar (~2000 words)</option>
+      </select>
+    </div>
+    <div class="field"><label>Writing Tone</label>
+      <select id="art-tone">
+        <option value="casual" selected>Casual & Friendly</option>
+        <option value="professional">Professional</option>
+        <option value="authoritative">Authoritative</option>
+        <option value="conversational">Conversational</option>
+      </select>
+    </div>
+    <div class="field"><label>Language</label>
+      <select id="art-lang">
+        <option value="English" selected>English</option>
+        <option value="Urdu">Urdu</option>
+        <option value="Arabic">Arabic</option>
+        <option value="Hindi">Hindi</option>
+        <option value="Spanish">Spanish</option>
+        <option value="French">French</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- PLATFORMS -->
+<div class="card">
+  <div class="stitle">03 — Free Platforms</div>
+  <p style="font-size:12px;color:var(--muted);margin-bottom:14px;">Select platforms. Tool posts 10 articles to Blogger first, then 10 to Medium, etc. All 100% free.</p>
+  <div class="plat-grid" id="plat-grid">
+    <div class="plat-chip" data-p="blogger"   onclick="togglePlat(this)"><div class="dot"></div>Blogger</div>
+    <div class="plat-chip" data-p="devto"     onclick="togglePlat(this)"><div class="dot"></div>Dev.to</div>
+    <div class="plat-chip" data-p="hashnode"  onclick="togglePlat(this)"><div class="dot"></div>Hashnode</div>
+    <div class="plat-chip" data-p="tumblr"    onclick="togglePlat(this)"><div class="dot"></div>Tumblr</div>
+  </div>
+  <div class="plat-creds" id="plat-creds"></div>
+</div>
+
+<!-- TOPIC PREVIEW -->
+<div class="card" id="preview-card" style="display:none">
+  <div class="stitle">AI-Generated Topic Plan</div>
+  <div id="topics-output"></div>
+</div>
+
+<!-- STATS -->
+<div class="stats-row">
+  <div class="stat-box"><div class="stat-num cyan" id="stat-total">0</div><div class="stat-lbl">Total Posted</div></div>
+  <div class="stat-box"><div class="stat-num green" id="stat-success">0</div><div class="stat-lbl">Successful</div></div>
+  <div class="stat-box"><div class="stat-num red" id="stat-failed">0</div><div class="stat-lbl">Failed</div></div>
+</div>
+
+<!-- LIVE LOG -->
+<div class="card">
+  <div class="stitle">Live Activity Log</div>
+  <div class="terminal">
+    <div class="t-head">
+      <div class="t-dot" style="background:#ef4444"></div>
+      <div class="t-dot" style="background:#f59e0b"></div>
+      <div class="t-dot" style="background:#10b981"></div>
+      <span>autopilot.log</span>
+      <span style="margin-left:auto;font-size:10px;color:#334155" id="log-count">0 entries</span>
+    </div>
+    <div class="t-body" id="t-body">
+      <div class="ll"><span class="lt">[--:--:--]</span><span class="linf">→ AutoPost Pro ready. Configure your settings and click Start Autopilot.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- RECENT POSTS -->
+<div class="card" id="posts-card" style="display:none">
+  <div class="stitle">Recent Posts</div>
+  <table class="posts-table">
+    <thead><tr><th>Platform</th><th>Title</th><th>Posted</th><th>Link</th></tr></thead>
+    <tbody id="posts-tbody"></tbody>
+  </table>
+</div>
+
+<!-- LAUNCH -->
+<div class="card" style="padding:22px;">
+  <button class="btn-preview" onclick="previewTopics()">✦ Preview AI Topic Plan (optional)</button>
+  <button class="btn-start" id="start-btn" onclick="toggleAutopilot()">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    Start Autopilot
+  </button>
+</div>
+
+<p style="text-align:center;font-size:11px;color:#1e293b;padding:12px 0 36px;font-family:'DM Mono',monospace;">AutoPost Pro · Groq Llama 3.3 · 10 posts/day · Fully Automated</p>
+</div>
+
+<script>
+// ── Platform config ───────────────────────────────────────────
+const PLATS = {
+  blogger: {
+    name: 'Blogger', type: 'blogger',
+    fields: [
+      { id:'blogger-cid',    label:'Google Client ID',     placeholder:'123....apps.googleusercontent.com', full:true },
+      { id:'blogger-csec',   label:'Google Client Secret', placeholder:'GOCSPX-...' },
+      { id:'blogger-blogid', label:'Blog ID (optional)',   placeholder:'Leave empty = auto-detect' }
+    ],
+    guide: [
+      'console.cloud.google.com → create project',
+      'Enable Blogger API v3',
+      'OAuth consent screen → External',
+      'Credentials → OAuth 2.0 Client ID → Web app',
+      'Redirect URI: http://localhost:3001/oauth/callback',
+      'Copy Client ID + Client Secret → paste below'
+    ]
+  },
+  devto: {
+    name: 'Dev.to', type: 'devto',
+    fields: [{ id:'devto-key', label:'Dev.to API Key', placeholder:'Paste your Dev.to API key', full:true }],
+    guide: [
+      'Go to dev.to and sign up free (use Gmail)',
+      'Click your avatar → Settings → Extensions',
+      'Scroll to "DEV Community API Keys"',
+      'Enter a description → click "Generate API Key"',
+      'Copy the key → paste below'
+    ]
+  },
+  hashnode: {
+    name: 'Hashnode', type: 'hashnode',
+    fields: [
+      { id:'hashnode-key',    label:'Hashnode API Key',        placeholder:'Paste your Hashnode token', full:true },
+      { id:'hashnode-pubid',  label:'Publication ID (optional)', placeholder:'Leave empty = auto-detect' }
+    ],
+    guide: [
+      'Go to hashnode.com and sign up free',
+      'Create your blog (e.g. yourblog.hashnode.dev)',
+      'Click your avatar → Account Settings → Developer',
+      'Click "Generate New Token" → copy it → paste below'
+    ]
+  },
+  tumblr: {
+    name: 'Tumblr', type: 'tumblr',
+    fields: [
+      { id:'tumblr-key',  label:'Consumer Key',  placeholder:'From tumblr.com/oauth/apps' },
+      { id:'tumblr-blog', label:'Blog URL',       placeholder:'yourblog.tumblr.com' }
+    ],
+    guide: ['tumblr.com/oauth/apps → Register app', 'Copy OAuth Consumer Key']
+  },
+
+};
+
+let autopilotOn    = false;
+let bloggerAuthed  = false;
+
+// ── Groq key ──────────────────────────────────────────────────
+async function saveKey() {
+  const key = document.getElementById('groq-key').value.trim();
+  if (!key) { alert('Paste your Groq API key first.'); return; }
+  const r = await fetch('/api/setkey', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({key}) });
+  const d = await r.json();
+  if (d.success) { showMsg('key-msg', '✓ API key saved — ready!'); }
+  else alert('Error: ' + d.error);
+}
+
+function showMsg(id, txt) {
+  const el = document.getElementById(id);
+  el.textContent = txt; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 4000);
+}
+
+// ── Platform chips ────────────────────────────────────────────
+function togglePlat(el) { el.classList.toggle('on'); renderCreds(); }
+
+function renderCreds() {
+  const sel = [...document.querySelectorAll('.plat-chip.on')].map(e => e.dataset.p);
+  const c   = document.getElementById('plat-creds');
+  if (!sel.length) { c.classList.remove('show'); c.innerHTML = ''; return; }
+  c.classList.add('show');
+  c.innerHTML = sel.map(p => {
+    const cfg = PLATS[p];
+    const guideHtml = cfg.guide.map((s,i) => `<div style="display:flex;gap:8px;margin-bottom:6px;align-items:flex-start"><div style="min-width:18px;height:18px;border-radius:50%;background:rgba(6,182,212,.15);border:1px solid rgba(6,182,212,.3);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--cyan);font-family:monospace;font-weight:700;flex-shrink:0">${i+1}</div><span style="font-size:11px;color:#64748b">${s}</span></div>`).join('');
+    const fieldsHtml = cfg.fields.map(f =>
+      `<div class="cf${f.full?' cf-full':''}"><label>${f.label}</label><input id="${f.id}" type="text" placeholder="${f.placeholder}" autocomplete="off"/></div>`
+    ).join('');
+    const gridClass = cfg.fields.length === 1 ? '' : (cfg.fields[0].full ? ' full1' : '');
+    const oauthHtml = p === 'blogger' ? `<div class="oauth-box" id="blogger-oauth-box"><span class="oauth-txt">⚠ Not connected — click to authorize with Google</span><button class="oauth-btn" id="blogger-oauth-btn" onclick="connectBlogger()">Connect with Google</button></div>` : '';
+    return `<div class="cred-block">
+      <div class="cred-title">${cfg.name}<span class="free-tag">FREE</span></div>
+      <details style="margin-bottom:12px"><summary style="font-size:11px;color:var(--cyan);cursor:pointer;font-family:'DM Mono',monospace">▸ How to get credentials</summary><div style="padding:10px 0">${guideHtml}</div></details>
+      <div class="cg${gridClass}" style="display:grid;grid-template-columns:${cfg.fields.length===1||cfg.fields[0]?.full?'1fr':'1fr 1fr'};gap:10px">${fieldsHtml}</div>
+      ${oauthHtml}
+    </div>`;
+  }).join('');
+}
+
+// ── Blogger OAuth ─────────────────────────────────────────────
+async function connectBlogger() {
+  const cid  = document.getElementById('blogger-cid')?.value.trim();
+  const csec = document.getElementById('blogger-csec')?.value.trim();
+  if (!cid || !csec) { alert('Enter Google Client ID and Client Secret first.'); return; }
+  const r = await fetch('/api/blogger/auth', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({clientId:cid, clientSecret:csec}) });
+  const d = await r.json();
+  if (!d.success) { alert('Error: ' + d.error); return; }
+  if (!d.needsAuth) { setBloggerAuthed(true); return; }
+  window.open(d.authUrl, 'Google Login', 'width=500,height=650,left=300,top=100');
+  window.addEventListener('message', function h(e) {
+    if (e.data?.type === 'BLOGGER_AUTHED' || e.data?.type === 'BLOGGER_SUCCESS') {
+      window.removeEventListener('message', h);
+      setBloggerAuthed(true);
+    }
+  });
+}
+
+function setBloggerAuthed(v) {
+  bloggerAuthed = v;
+  const box = document.getElementById('blogger-oauth-box');
+  const btn = document.getElementById('blogger-oauth-btn');
+  if (!box || !btn) return;
+  if (v) {
+    box.classList.add('ok');
+    box.querySelector('.oauth-txt').textContent = '✓ Connected to Google — auto-posting enabled';
+    btn.textContent = '✓ Connected'; btn.classList.add('ok');
+  }
+}
+
+// ── Topic preview ──────────────────────────────────────────────
+async function previewTopics() {
+  const backlink = document.getElementById('backlink-url').value.trim();
+  const niche    = document.getElementById('website-niche').value.trim();
+  if (!backlink) { alert('Enter your website URL first.'); return; }
+  const btn = document.querySelector('.btn-preview');
+  btn.textContent = '⌛ Generating topics...'; btn.disabled = true;
+  try {
+    const r = await fetch('/api/preview-topics', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({backlink, websiteNiche:niche}) });
+    const d = await r.json();
+    if (!d.success) throw new Error(d.error);
+    const card = document.getElementById('preview-card');
+    card.style.display = 'block';
+    document.getElementById('topics-output').innerHTML = `
+      <p style="font-size:12px;color:var(--muted);margin-bottom:12px">AI generated these 10 topics for today. Tomorrow it generates 10 different ones automatically.</p>
+      <div class="topics-grid">${d.topics.map((t,i) => `
+        <div class="topic-card">
+          <h4>${i+1}. ${t.topic}</h4>
+          <p>Anchor: <em style="color:#94a3b8">${t.anchorText}</em></p>
+          <span class="topic-badge">${t.keyword}</span>
+        </div>`).join('')}
+      </div>`;
+  } catch(e) { alert('Error: ' + e.message); }
+  finally { btn.textContent = '✦ Preview AI Topic Plan (optional)'; btn.disabled = false; }
+}
+
+// ── Start / Stop autopilot ────────────────────────────────────
+async function toggleAutopilot() {
+  if (autopilotOn) {
+    await fetch('/api/scheduler/stop', { method:'POST' });
+    setAutopilotUI(false);
+    return;
+  }
+
+  const backlink = document.getElementById('backlink-url').value.trim();
+  const niche    = document.getElementById('website-niche').value.trim();
+  const length   = document.getElementById('art-length').value;
+  const tone     = document.getElementById('art-tone').value;
+  const language = document.getElementById('art-lang').value;
+  const selected = [...document.querySelectorAll('.plat-chip.on')].map(e => e.dataset.p);
+
+  if (!backlink)        { alert('Enter your website URL.'); return; }
+  if (!selected.length) { alert('Select at least one platform.'); return; }
+
+  // Validate key
+  const keyVal = document.getElementById('groq-key').value.trim();
+  if (keyVal) await fetch('/api/setkey', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({key:keyVal}) });
+  const ks = await (await fetch('/api/keystatus')).json();
+  if (!ks.saved) { alert('Enter your Groq API key first!'); return; }
+
+  // Build platforms array
+  const platforms = [];
+  for (const p of selected) {
+    const creds = {};
+    if (p === 'blogger') {
+      if (!bloggerAuthed) { alert('Connect Google account for Blogger first!'); return; }
+      creds.clientId     = document.getElementById('blogger-cid')?.value.trim();
+      creds.clientSecret = document.getElementById('blogger-csec')?.value.trim();
+      creds.blogId       = document.getElementById('blogger-blogid')?.value.trim();
+    }
+    if (p === 'devto')    creds.apiKey        = document.getElementById('devto-key')?.value.trim();
+    if (p === 'hashnode') { creds.apiKey = document.getElementById('hashnode-key')?.value.trim(); creds.publicationId = document.getElementById('hashnode-pubid')?.value.trim(); }
+    if (p === 'tumblr')  { creds.apiKey     = document.getElementById('tumblr-key')?.value.trim(); creds.blogName = document.getElementById('tumblr-blog')?.value.trim(); }
+    platforms.push({ type:p, name:PLATS[p].name, credentials:creds });
+  }
+
+  const r = await fetch('/api/scheduler/start', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ backlink, websiteNiche:niche, tone, length, language, platforms }) });
+  const d = await r.json();
+  if (!d.success) { alert('Error: ' + d.error); return; }
+  setAutopilotUI(true);
+}
+
+function setAutopilotUI(on) {
+  autopilotOn = on;
+  const btn  = document.getElementById('start-btn');
+  const pill = document.getElementById('status-pill');
+  if (on) {
+    btn.classList.add('active');
+    btn.innerHTML = '<div class="spinner"></div> Stop Autopilot';
+    pill.className = 'status-pill running';
+    pill.innerHTML = '<div class="pulse"></div> Running';
+  } else {
+    btn.classList.remove('active');
+    btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Start Autopilot';
+    pill.className = 'status-pill stopped';
+    pill.innerHTML = '<span>●</span> Stopped';
+  }
+}
+
+// ── SSE live log ──────────────────────────────────────────────
+const evtSource = new EventSource('/api/log-stream');
+let logCount = 0;
+evtSource.onmessage = (e) => {
+  const d = JSON.parse(e.data);
+  if (d.type === 'stats') { updateStats(d.stats); return; }
+  appendLog(d.time, d.msg, d.type);
+};
+
+function appendLog(time, msg, type) {
+  const body = document.getElementById('t-body');
+  const typeMap = { ok:'lok', info:'linf', warn:'lwrn', err:'lerr', ai:'lai' };
+  const icons   = { ok:'✓', info:'→', warn:'!', err:'✗', ai:'✦' };
+  const el = document.createElement('div');
+  el.className = 'll'; el.style.opacity = '0'; el.style.animation = 'fadeIn .3s forwards';
+  el.innerHTML = `<span class="lt">[${time}]</span><span class="${typeMap[type]||'linf'}">${icons[type]||'→'} ${msg}</span>`;
+  body.appendChild(el);
+  body.scrollTop = body.scrollHeight;
+  logCount++;
+  document.getElementById('log-count').textContent = logCount + ' entries';
+  // Keep max 200 lines
+  while (body.children.length > 200) body.removeChild(body.firstChild);
+}
+
+function updateStats(stats) {
+  document.getElementById('stat-total').textContent   = stats.total;
+  document.getElementById('stat-success').textContent = stats.success;
+  document.getElementById('stat-failed').textContent  = stats.failed;
+  if (stats.posts?.length) {
+    document.getElementById('posts-card').style.display = 'block';
+    document.getElementById('posts-tbody').innerHTML = stats.posts.slice(0,20).map(p =>
+      `<tr><td><span class="plat-tag">${p.platform}</span></td><td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</td><td style="font-size:11px;color:var(--muted)">${p.time}</td><td><a href="${p.url}" target="_blank">View →</a></td></tr>`
+    ).join('');
+  }
+}
+
+// ── Init ──────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async () => {
+  try {
+    // Load key status
+    const ks = await (await fetch('/api/keystatus')).json();
+    if (ks.saved) showMsg('key-msg', '✓ API key loaded from .env — ready!');
+
+    // Load all env credentials and auto-fill fields + select chips
+    const env = await (await fetch('/api/env-creds')).json();
+
+    // Auto-fill website fields
+    if (env.site?.backlink) document.getElementById('backlink-url').value = env.site.backlink;
+    if (env.site?.niche)    document.getElementById('website-niche').value = env.site.niche;
+
+    // Auto-select and fill platforms that have keys in .env
+    const autoSelect = [];
+    if (env.blogger?.clientId)  autoSelect.push('blogger');
+    if (env.devto?.apiKey)      autoSelect.push('devto');
+    if (env.hashnode?.apiKey)   autoSelect.push('hashnode');
+    if (env.tumblr?.apiKey)     autoSelect.push('tumblr');
+
+    // Click chips that have env credentials
+    autoSelect.forEach(p => {
+      const chip = document.querySelector(`.plat-chip[data-p="${p}"]`);
+      if (chip && !chip.classList.contains('on')) chip.classList.add('on');
+    });
+    if (autoSelect.length) renderCreds();
+
+    // Fill in credential fields after renderCreds creates them
+    await new Promise(r => setTimeout(r, 50));
+    if (env.blogger?.clientId)      { const el = document.getElementById('blogger-cid');    if(el) el.value = env.blogger.clientId; }
+    if (env.blogger?.clientSecret)  { const el = document.getElementById('blogger-csec');   if(el) el.value = env.blogger.clientSecret; }
+    if (env.blogger?.blogId)        { const el = document.getElementById('blogger-blogid'); if(el) el.value = env.blogger.blogId; }
+    if (env.devto?.apiKey)          { const el = document.getElementById('devto-key');      if(el) el.value = env.devto.apiKey; }
+    if (env.hashnode?.apiKey)       { const el = document.getElementById('hashnode-key');   if(el) el.value = env.hashnode.apiKey; }
+    if (env.hashnode?.publicationId){ const el = document.getElementById('hashnode-pubid'); if(el) el.value = env.hashnode.publicationId; }
+    if (env.tumblr?.apiKey)         { const el = document.getElementById('tumblr-key');     if(el) el.value = env.tumblr.apiKey; }
+    if (env.tumblr?.blogName)       { const el = document.getElementById('tumblr-blog');    if(el) el.value = env.tumblr.blogName; }
+
+    if (autoSelect.length > 0) {
+      const names = autoSelect.map(p => ({blogger:'Blogger',devto:'Dev.to',hashnode:'Hashnode',tumblr:'Tumblr',wordpress:'WordPress'}[p])).join(', ');
+      appendLog('--:--:--', `Loaded from .env: ${names}`, 'ok');
+    }
+
+    // Restore scheduler state
+    const s = await (await fetch('/api/scheduler/status')).json();
+    if (s.running) setAutopilotUI(true);
+    if (s.stats)   updateStats(s.stats);
+  } catch(e){ console.error(e); }
+});
+</script>
+</body>
+</html>

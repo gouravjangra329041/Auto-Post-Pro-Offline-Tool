@@ -1,0 +1,78 @@
+╔══════════════════════════════════════════════════════════╗
+║           AutoPost Pro — Setup Guide                     ║
+║           Read this first! Takes 5 minutes.              ║
+╚══════════════════════════════════════════════════════════╝
+
+STEP 1 — Install Node.js (one time only)
+─────────────────────────────────────────
+  → Go to: https://nodejs.org
+  → Click the big green "LTS" download button
+  → Install it (just click Next → Next → Finish)
+  → Done! You never need to do this again.
+
+
+STEP 2 — Open the autopost-pro folder
+──────────────────────────────────────
+  → Find the "autopost-pro" folder on your computer
+  → Right-click inside it
+  → Select "Open in Terminal" (Windows) or "New Terminal at Folder" (Mac)
+
+
+STEP 3 — Install the tool (one time only)
+──────────────────────────────────────────
+  Type this and press Enter:
+
+      npm install
+
+  Wait for it to finish (1-2 minutes). You'll see some text scroll by.
+
+
+STEP 4 — Start the server
+──────────────────────────
+  Type this and press Enter:
+
+      node server.js
+
+  You will see:
+
+      ✦ AutoPost Pro is running!
+      → Open your browser and go to: http://localhost:3000
+
+
+STEP 5 — Open the tool in your browser
+────────────────────────────────────────
+  → Open Chrome, Firefox, or Edge
+  → Go to: http://localhost:3000
+  → The AutoPost Pro tool will load!
+
+
+STEP 6 — Get your FREE Anthropic API Key
+─────────────────────────────────────────
+  → Go to: https://console.anthropic.com
+  → Sign up for a free account
+  → Click "API Keys" in the left menu
+  → Click "Create Key"
+  → Copy the key (starts with sk-ant-...)
+  → Paste it in the tool at the top
+
+
+STEP 7 — Use the tool!
+───────────────────────
+  → Fill in your website URL, topic, choose a platform
+  → Follow the guide inside the tool to get platform credentials (all free)
+  → Click "Launch Auto-Post"
+  → Done! Your article is posted with your backlink inside.
+
+
+──────────────────────────────────────────────────────────
+  TO RUN AGAIN NEXT TIME: Just repeat Step 4 (node server.js)
+  Then go to http://localhost:3000 in your browser.
+──────────────────────────────────────────────────────────
+
+
+TROUBLESHOOTING
+───────────────
+  • "npm is not recognized" → Node.js is not installed. Repeat Step 1.
+  • "Port 3000 already in use" → Change PORT=3001 in the .env file
+  • "Failed to fetch" → Make sure node server.js is running in the terminal
+  • Article not posting → Check your platform credentials are correct
